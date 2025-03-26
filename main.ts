@@ -67,6 +67,12 @@ class ParticleEffect {
         return this;
     }
 
+    public setLifespan(ms: number, varies?: boolean): ParticleEffect {
+        this.lifespan = ms;
+        if (varies) { this.lifespanRange = varies; }
+        return this;
+    }
+
     public go() {
         setTimeout(() => {
             for (let i = 0; i < this.numOfParticles; i++) {
@@ -110,7 +116,9 @@ class ParticleEffect {
 class ParticleFactory {
     fx: ParticleEffect[] = []
 
-    constructor() {}
+    constructor(fxs?: ParticleEffect[]) {
+        if (fxs) { this.fx = fxs; }
+     }
 
     public add(e: ParticleEffect): ParticleFactory { this.fx.push(e); return this }
     public go() { this.fx.forEach((e) => { e.go() }) }
@@ -119,11 +127,12 @@ class ParticleFactory {
 let factory = new ParticleFactory;
 
 for (let i = 0; i < 100; i++) {
-    let preset = (i % 3 !== 0) ? ParticlePresets.ring : ParticlePresets.circle 
-    let e = new ParticleEffect(100, preset)
-            .setDelay(i * 500)
-            .setAngle(Math.PI / 2, true)
-            .setDirection(Math.PI * i, true)
+    let angle = (i % 2 === 0) ? Math.PI * 2 : Math.PI / 2 
+    let e = new ParticleEffect(200, ParticlePresets.ring)
+            .setDelay(i * 300)
+            .setAngle(angle, true)
+            .setDirection(Math.PI/10 * i, true)
+            .setLifespan(500, false)
     factory.add(e)
 }
 
