@@ -10,6 +10,7 @@ interface ParticleConfig {
     bouncy?: boolean;
     direction?: number;
     angle?: number;
+    delay?: number;
 }
 
 class ParticlePresets {
@@ -28,6 +29,7 @@ class ParticleEffect {
     bouncy: boolean;
     direction: number;
     angle: number;
+    delay: number;
 
     static readonly RADIANS_IN_A_DEGREE: number = Math.PI / 180
 
@@ -46,24 +48,35 @@ class ParticleEffect {
         this.bouncy = config.bouncy ? config.bouncy : true;
         this.direction = config.direction ? config.direction : 0;
         this.angle = config.angle ? config.angle : 2 * Math.PI;
+        this.delay = config.delay ? config.delay : 0;
+        return this;
     }
 
-    public setDirection(n: number, usingRadians: boolean = false) {
+    public setDirection(n: number, usingRadians: boolean = false): ParticleEffect {
         this.direction = usingRadians? n : n * ParticleEffect.RADIANS_IN_A_DEGREE
+        return this;
     }
 
-    public setAngle(n: number, usingRadians: boolean = false) {
+    public setAngle(n: number, usingRadians: boolean = false): ParticleEffect {
         this.angle = usingRadians ? n : n * ParticleEffect.RADIANS_IN_A_DEGREE
+        return this;
+    }
+
+    public setDelay(ms: number): ParticleEffect {
+        this.delay = ms;
+        return this;
     }
 
     public go() {
-        for (let i = 0; i < this.numOfParticles; i++) {
-            let s = ParticleEffect.spriteOfSize(this.minSize, this.maxSize);
-            s.lifespan = this.lifespanRange ? randint(1, this.lifespan) : this.lifespan
-            this.moveAtRandAngle(s)
-            ParticleEffect.moveAtSpeed(s, this.speed, this.speedRange)
-            this.setFlags(s)
-        }
+        setTimeout(() => {
+            for (let i = 0; i < this.numOfParticles; i++) {
+                let s = ParticleEffect.spriteOfSize(this.minSize, this.maxSize);
+                s.lifespan = this.lifespanRange ? randint(1, this.lifespan) : this.lifespan
+                this.moveAtRandAngle(s)
+                ParticleEffect.moveAtSpeed(s, this.speed, this.speedRange)
+                this.setFlags(s)
+            }
+        }, this.delay)
     }
 
     private static spriteOfSize(min: number, max: number): Sprite {
@@ -99,12 +112,19 @@ class ParticleFactory {
 
     constructor() {}
 
-    public add(e: ParticleEffect) { this.fx.push(e); }
+    public add(e: ParticleEffect): ParticleFactory { this.fx.push(e); return this }
     public go() { this.fx.forEach((e) => { e.go() }) }
 }
 
 let factory = new ParticleFactory;
-let e = new ParticleEffect(1000, ParticlePresets.ring)
 
-factory.add(e)
+for (let i = 0; i < 100; i++) {
+    let preset = (i % 3 !== 0) ? ParticlePresets.ring : ParticlePresets.circle 
+    let e = new ParticleEffect(100, preset)
+            .setDelay(i * 500)
+            .setAngle(Math.PI / 2, true)
+            .setDirection(Math.PI * i, true)
+    factory.add(e)
+}
+
 factory.go()
