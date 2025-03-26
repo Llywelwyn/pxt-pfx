@@ -4,61 +4,66 @@ interface ParticleConfig {
     minSize?: number;
     maxSize?: number;
     speed?: number;
-    speedRange?: boolean;
+    speedVaries?: boolean;
     lifespan?: number;
-    lifespanRange?: boolean;
+    lifespanVaries?: boolean;
     bouncy?: boolean;
     direction?: number;
     angle?: number;
-    delay?: number;
 }
 
 class ParticlePresets {
-    static readonly circle: ParticleConfig = { lifespanRange: true, speedRange: true };
-    static readonly ring: ParticleConfig = { lifespanRange: true, speedRange: false }
+    static readonly circle: ParticleConfig = {
+        minSize: 1,
+        maxSize: 4,
+        speed: 100,
+        speedVaries: true,
+        lifespan: 1000,
+        lifespanVaries: true,
+        bouncy: true,
+        direction: 0,
+        angle: 2 * Math.PI,
+    };
+    static readonly ring: ParticleConfig = { lifespanVaries: true, speedVaries: false }
 }
 
 class ParticleEffect {
     numOfParticles: number;
-    minSize: number;
-    maxSize: number;
-    speed: number;
-    speedRange: boolean;
-    lifespan: number;
-    lifespanRange: boolean;
-    bouncy: boolean;
-    direction: number;
-    angle: number;
-    delay: number;
+    delay: number = 0;
+    config: ParticleConfig = ParticlePresets.circle;
 
     static readonly RADIANS_IN_A_DEGREE: number = Math.PI / 180
 
-    constructor(n: number, config:  ParticleConfig = {}) {
+    constructor(n: number, delay?: number, config?: ParticleConfig) {
         this.numOfParticles = n;
-        this.setConfig(config);
+        if (delay) { this.delay = delay; }
+        if (config) { this.setConfig(config); }
     }
 
     public setConfig(config: ParticleConfig) {
-        this.minSize = config.minSize ? config.minSize : 1;
-        this.maxSize = config.maxSize ? config.maxSize : 4;
-        this.speed = config.speed ? config.speed : 100;
-        this.speedRange = config.speedRange ? config.speedRange : false;
-        this.lifespan = config.lifespan ? config.lifespan : 1000;
-        this.lifespanRange = config.lifespanRange ? config.lifespanRange : false;
-        this.bouncy = config.bouncy ? config.bouncy : true;
-        this.direction = config.direction ? config.direction : 0;
-        this.angle = config.angle ? config.angle : 2 * Math.PI;
-        this.delay = config.delay ? config.delay : 0;
+        const setOrDefault = <T>(value: T | undefined, defaultValue: T): T => {
+            return value !== undefined ? value : defaultValue;
+        }
+
+        this.config.minSize = setOrDefault(config.minSize, ParticlePresets.circle.minSize);
+        this.config.maxSize = setOrDefault(config.maxSize, ParticlePresets.circle.maxSize);
+        this.config.speed = setOrDefault(config.speed, ParticlePresets.circle.speed);
+        this.config.speedVaries = setOrDefault(config.speedVaries, ParticlePresets.circle.speedVaries);
+        this.config.lifespan = setOrDefault(config.lifespan, ParticlePresets.circle.lifespan);
+        this.config.lifespanVaries = setOrDefault(config.lifespanVaries, ParticlePresets.circle.lifespanVaries);
+        this.config.bouncy = setOrDefault(config.bouncy, ParticlePresets.circle.bouncy);
+        this.config.direction = setOrDefault(config.direction, ParticlePresets.circle.direction);
+        this.config.angle = setOrDefault(config.angle, ParticlePresets.circle.angle);
         return this;
     }
 
     public setDirection(n: number, usingRadians: boolean = false): ParticleEffect {
-        this.direction = usingRadians? n : n * ParticleEffect.RADIANS_IN_A_DEGREE
+        this.config.direction = usingRadians? n : n * ParticleEffect.RADIANS_IN_A_DEGREE
         return this;
     }
 
     public setAngle(n: number, usingRadians: boolean = false): ParticleEffect {
-        this.angle = usingRadians ? n : n * ParticleEffect.RADIANS_IN_A_DEGREE
+        this.config.angle = usingRadians ? n : n * ParticleEffect.RADIANS_IN_A_DEGREE
         return this;
     }
 
@@ -68,18 +73,18 @@ class ParticleEffect {
     }
 
     public setLifespan(ms: number, varies?: boolean): ParticleEffect {
-        this.lifespan = ms;
-        if (varies) { this.lifespanRange = varies; }
+        this.config.lifespan = ms;
+        if (varies) { this.config.lifespanVaries = varies; }
         return this;
     }
 
     public go() {
         setTimeout(() => {
             for (let i = 0; i < this.numOfParticles; i++) {
-                let s = ParticleEffect.spriteOfSize(this.minSize, this.maxSize);
-                s.lifespan = this.lifespanRange ? randint(1, this.lifespan) : this.lifespan
+                let s = ParticleEffect.spriteOfSize(this.config.minSize, this.config.maxSize);
+                s.lifespan = this.config.lifespan
                 this.moveAtRandAngle(s)
-                ParticleEffect.moveAtSpeed(s, this.speed, this.speedRange)
+                ParticleEffect.moveAtSpeed(s, this.config.speed, this.config.speedVaries)
                 this.setFlags(s)
             }
         }, this.delay)
@@ -94,7 +99,7 @@ class ParticleEffect {
         return s
     }
     private setFlags(s: Sprite) {
-        s.setFlag(SpriteFlag.BounceOnWall, this.bouncy)
+        s.setFlag(SpriteFlag.BounceOnWall, this.config.bouncy)
         s.setFlag(SpriteFlag.AutoDestroy, true)
     }
     private static randAngle(dir: number = 0, max_angle: number = 2 * Math.PI): number {
@@ -103,7 +108,7 @@ class ParticleEffect {
         return randint(lower, upper)
     }
     private moveAtRandAngle(s: Sprite) {
-        let angle = ParticleEffect.randAngle(this.direction, this.angle)
+        let angle = ParticleEffect.randAngle(this.config.direction, this.config.angle)
         s.vx = Math.cos(angle)
         s.vy = Math.sin(angle)
     }
@@ -126,13 +131,11 @@ class ParticleFactory {
 
 let factory = new ParticleFactory;
 
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 5; i++) {
     let angle = (i % 2 === 0) ? Math.PI * 2 : Math.PI / 2 
-    let e = new ParticleEffect(200, ParticlePresets.ring)
-            .setDelay(i * 300)
-            .setAngle(angle, true)
-            .setDirection(Math.PI/10 * i, true)
-            .setLifespan(500, false)
+    let e = new ParticleEffect(5)
+        .setAngle(Math.PI)
+        .setDelay(i * 300)
     factory.add(e)
 }
 
