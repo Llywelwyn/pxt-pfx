@@ -106,6 +106,12 @@ class ParticleEffect {
         return this;
     }
 
+    public setSize(minimum: number, maximum: number): ParticleEffect {
+        this.config.minSize = minimum;
+        this.config.maxSize = maximum;
+        return this;
+    }
+
     public setPosition(x: number, y: number): ParticleEffect {
         this.pos.x = x;
         this.pos.y = y;
@@ -182,6 +188,11 @@ class ParticleEffect {
         return this;
     }
 
+    public setBouncy(isBouncy: boolean): ParticleEffect {
+        this.config.bouncy = isBouncy;
+        return this;
+    }
+
     public setSpeed(ms: number, varies?: boolean): ParticleEffect {
         this.config.speed = ms;
         if (varies !== undefined) { this.config.speedVaries = varies; }
@@ -247,7 +258,7 @@ class ParticleEffect {
     }
 }
 
-class ParticleBuilder {
+class ParticleFactory {
     private fx: ParticleEffect[] = []
     private delay_between: number = 0;
 
@@ -255,7 +266,7 @@ class ParticleBuilder {
         if (fxs) { this.fx = fxs; }
      }
 
-    public add(effect: ParticleEffect, times?: number): ParticleBuilder {
+    public add(effect: ParticleEffect, times?: number): ParticleFactory {
         let n = (times !== undefined) ? times : 1 
         for (let i = 0; i < n; i++) {
             this.fx.push(effect);
@@ -263,9 +274,9 @@ class ParticleBuilder {
         return this;
     }
 
-    public clear(): ParticleBuilder { this.fx = []; return this; }
+    public clear(): ParticleFactory { this.fx = []; return this; }
 
-    public setDelay(ms?: number): ParticleBuilder {
+    public setDelay(ms?: number): ParticleFactory {
         this.delay_between = (ms !== undefined) ? ms : 0;
         return this;
     }
@@ -282,17 +293,24 @@ class ParticleBuilder {
 let e = new ParticleEffect(10)
         .setSpreadAngle(Math.PI/8, true)
 
-let r = new ParticleEffect(100, ParticlePresets.line)
+let fx = new ParticleEffect(2, ParticlePresets.line)
 
-let n = sprites.create(image.create(4, 4))
-n.image.fill(4)
+let target = sprites.create(image.create(6, 6), SpriteKind.Player)
+target.image.fill(1)
 
-let f = new ParticleBuilder;
+let factory = new ParticleFactory;
 setInterval(() => {
-    n.setPosition(randint(1, 160), randint(1, 120))
-    r.setPosition(randint(1, 160), randint(1, 120))
-    r.aimTowards(n)
-    r.rainbow();
-    r.setSpreadAngle(8)
-    f.add(r, 5).setDelay(1000/10).emit().clear();
+    target.setPosition(randint(1, 160), randint(1, 120))
+    fx.setPosition(randint(1, 160), randint(1, 120))
+    fx.aimTowards(target)
+    fx.rainbow();
+    fx.setSpreadAngle(8)
+    fx.setKind(SpriteKind.Enemy)
+    fx.setGravity(50)
+    factory.add(fx, 10).setDelay(1000/20).emit().clear();
 }, 1000)
+
+/** Particles can have a SpriteKind. */
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, () => {
+    info.changeLifeBy(1);
+});
