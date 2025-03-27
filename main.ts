@@ -88,6 +88,8 @@ class ParticleEffect {
     private numOfParticles: number;
     /** Delay before particles are emitted. */
     private delay: number = 0;
+    /** SpriteKind of particles emitted. */
+    private kind: number;
     private pos: Point = { x: 80, y: 60 }
     /** Particle configuration. */
     config: ParticleConfig = ParticlePresets.cloneConfig(ParticlePresets.circle);
@@ -112,6 +114,11 @@ class ParticleEffect {
 
     public setColor(color: number): ParticleEffect {
         this.config.color = color;
+        return this;
+    }
+
+    public setKind(spritekind: number): ParticleEffect {
+        this.kind = spritekind;
         return this;
     }
 
@@ -189,51 +196,54 @@ class ParticleEffect {
     public emit() {
         setTimeout(() => {
             for (let i = 0; i < this.numOfParticles; i++) {
-                let s = ParticleEffect.makeParticleOfSize(
-                    this.config.minSize,
-                    this.config.maxSize
-                );
-                this.setParticleColor(s);
-                s.setPosition(this.pos.x, this.pos.y);
-                s.lifespan = this.config.lifespan
-                this.moveAtRandAngle(s)
-                ParticleEffect.moveAtSpeed(s, this.config.speed, this.config.speedVaries)
-                this.applyGravity(s)
-                this.setFlags(s)
+                let p = this.makeParticle();
             }
         }, this.delay)
     }
 
-    private static makeParticleOfSize(min: number, max: number): Sprite {
+    private makeParticle(): Sprite {
         let s = sprites.create(image.create(
-            randint(min, max),
-            randint(min, max)
-        ))
+            randint(this.config.minSize, this.config.maxSize),
+            randint(this.config.minSize, this.config.maxSize),
+        ), this.kind)
+        s.setPosition(this.pos.x, this.pos.y);
+        s.lifespan = this.config.lifespan;
+        this.applyParticleColor(s);
+        this.applyMoveAngle(s);
+        this.applyInitialSpeed(s);
+        this.applyGravity(s);
+        this.applyFlags(s);
         return s;
     }
-    private setParticleColor(s: Sprite) {
+
+    private applyParticleColor(s: Sprite) {
         let c = (this.config.color === -1) ? randint(1, 16) : this.config.color;
         s.image.fill(c);
     }
-    private setFlags(s: Sprite) {
+
+    private applyFlags(s: Sprite) {
         s.setFlag(SpriteFlag.BounceOnWall, this.config.bouncy)
         s.setFlag(SpriteFlag.AutoDestroy, true)
     }
+
     private static randAngle(dir: number = 0, max_angle: number = 2 * Math.PI): number {
         const ANGLE_OFFSET = -Math.PI/2 - max_angle/2;
         const lower = -Math.PI/2 - max_angle/2 + dir;
         const upper = -Math.PI/2 - max_angle/2 + max_angle + dir;
         return randint(lower, upper)
     }
-    private moveAtRandAngle(s: Sprite) {
+
+    private applyMoveAngle(s: Sprite) {
         let angle = ParticleEffect.randAngle(this.config.direction, this.config.spreadAngle)
         s.vx = Math.cos(angle)
         s.vy = Math.sin(angle)
     }
+
     private applyGravity(s: Sprite) { s.ay = this.config.gravity; }
-    private static moveAtSpeed(s: Sprite, speed: number, varies: boolean) {
-        s.vx *= varies ? randint(0, speed) : speed
-        s.vy *= varies ? randint(0, speed) : speed
+    
+    private applyInitialSpeed(s: Sprite) {
+        s.vx *= this.config.speedVaries ? randint(0, this.config.speed) : this.config.speed
+        s.vy *= this.config.speedVaries ? randint(0, this.config.speed) : this.config.speed
     }
 }
 
