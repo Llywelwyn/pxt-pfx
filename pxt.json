@@ -5,10 +5,8 @@
         "device": "*"
     },
     "files": [
-        "main.blocks",
         "README.md",
         "assets.json",
-        "main.py",
         "particles.ts"
     ],
     "testFiles": [
