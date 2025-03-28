@@ -1,29 +1,40 @@
+/**
+ * Extension for creating particle effects.
+ */
+//% weight=0 color=#fc03f0 icon="\uf021" block="Particle FX"
+//% advanced=true
 namespace pfx {
+    /**
+     * Interface for particle configuration.
+     * @param minSize Minimum particle size in Pixels.
+     * @param maxSize Maximum particle size in Pixels.
+     * @param color Particle colour.
+     * @param speed Speed of particle.
+     * @param speedVaries If true, speed will be randomised between 0 and speed.
+     * @param lifespan Lifespan of particle in milliseconds.
+     * @param lifespanVaries If true, lifespan will be randomised between 0 and lifespan.
+     * @param bouncy If the particle should BounceOnWalls.
+     * @param direction Direction of particle emission in Radians.
+     * @param spreadAngle Maximum spread of the particle emission in Radians.
+     * @param gravity Downward acceleration on the particle.
+     */
     export interface ParticleConfig {
-        /** Minimum particle size in Pixels. */
         minSize?: number;
-        /** Maximum particle size in Pixels. */
         maxSize?: number;
-        /** Particle colour. */
         color?: number;
-        /** Speed of particle. */
         speed?: number;
-        /** If true, speed will be randomised between 0 and speed. */
         speedVaries?: boolean;
-        /** Lifespan of particle in milliseconds. */
         lifespan?: number;
-        /** If true, lifespan will be randomised between 0 and lifespan. */
         lifespanVaries?: boolean;
-        /** If the particle should BounceOnWalls. */
         bouncy?: boolean;
-        /** Direction of particle emission in Radians. */
         direction?: number;
-        /** Maximum spread of the particle emission in Radians. */
         spreadAngle?: number;
-        /** Downward acceleration on the particle. */
         gravity?: number;
     }
 
+    /**
+     * Predefined particle configurations.
+     */
     export class ParticlePresets {
         static readonly circle: ParticleConfig = {
             minSize: 1,
