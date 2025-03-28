@@ -1,6 +1,6 @@
 {
-    "name": "Untitled",
-    "description": "",
+    "name": "PFX: Particle FX",
+    "description": "Particle effects library for MakeCode Arcade/PXT.",
     "dependencies": {
         "device": "*"
     },

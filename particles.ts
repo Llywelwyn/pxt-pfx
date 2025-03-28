@@ -93,7 +93,7 @@ namespace pfx {
         /** Particle configuration. */
         private config: ParticleConfig = ParticlePresets.cloneConfig(ParticlePresets.circle);
 
-        static readonly RADIANS_IN_A_DEGREE: number = Math.PI / 180
+        private static readonly RADIANS_IN_A_DEGREE: number = Math.PI / 180
 
         constructor(n: number, config?: ParticleConfig) {
             this.numOfParticles = n;
