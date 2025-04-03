@@ -16,7 +16,7 @@ p.emit()
 #### using a factory to emit an effect 10 times with a delay of 100ms between each emission
 ```ts
 // makes an effect with 100 particles aimed rightwards in a semicircle
-let p = new pfx.ParticleEffect(100).setDirection(90).setAngle(180);
+let p = new pfx.ParticleEffect(100).setDirection(90).setSpreadAngle(180);
 // makes a factory that can contain multiple effects
 let factory = new pfx.ParticleFactory;
 // adds the particle 10 times to the factory with a delay of 100ms between each effect
